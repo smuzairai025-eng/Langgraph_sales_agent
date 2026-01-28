@@ -3,6 +3,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from typing import TypedDict
+from langchain_core.documents import Document
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,7 +30,8 @@ def get_retriever():
         return vector_store.as_retriever(kwargs={'k':3})
     else:
         loaded_doc=document_loader(file_path)
-        chunks=text_splitter(loaded_doc)
+        doc_obj=Document(page_content=loaded_doc)
+        chunks=text_splitter([doc_obj])
         
         print("Creating new faiss vector store")
         vector_store=FAISS.from_documents(documents=chunks, embedding=embeddings)

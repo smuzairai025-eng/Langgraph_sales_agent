@@ -4,8 +4,8 @@ from .prompts import PITCH_SYSTEM,PROFILER_SYSTEM,EXPERT_SYSTEM
 from .rag_service import get_retriever
 from .state import AgentState
 from langgraph.graph import StateGraph,START,END
-from .router import route_response,get_next_node
-from .nodes import expert_node,profiler_node,objection_node,irrelevant_node
+from .router import route_response,get_next_node,check_profile_status
+from .nodes import expert_node,profiler_node,objection_node,irrelevant_node,pitch_node
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +19,7 @@ def build_workflow():
     graph.add_node("router", route_response)
     graph.add_node("profiler",profiler_node)
     graph.add_node("expert",expert_node)
+    graph.add_node("pitch",pitch_node)
     graph.add_node("objection",objection_node)
     graph.add_node("chitchat",irrelevant_node)
 
@@ -31,7 +32,11 @@ def build_workflow():
         "chitchat":"chitchat",
 
     })
-    graph.add_edge("profiler",END)
+    graph.add_conditional_edges("profiler",check_profile_status,{
+        "pitch_node":"pitch",
+        "end":END
+    })
+    graph.add_edge("pitch",END)
     graph.add_edge("expert",END)
     graph.add_edge("objection",END)
     graph.add_edge("chitchat",END)

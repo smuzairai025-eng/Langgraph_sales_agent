@@ -21,9 +21,18 @@ def route_response(state : AgentState):
     
     return {'intent':[response.intent]}
 
+def check_profile_status(state :AgentState):
+     profile=state.get("profile",{})
+     if (profile.get("industry") and
+         profile.get("website") and
+         profile.get("customer_size")):
+          return "pitch_node"
+     return "end"
+
 def get_next_node(state: AgentState):
         intent = state.get("intent")
-        if intent == "inquiry": return "expert"
-        if intent == "informative": return "profiler"
-        if intent == "objection": return "objection"
-        return "chitchat"
+        print(intent)
+        if intent == ["inquiry"]: return "expert"
+        if intent == ["informative"]: return "profiler"
+        if intent == ["objection"]: return "objection"
+        return ["chitchat"]
