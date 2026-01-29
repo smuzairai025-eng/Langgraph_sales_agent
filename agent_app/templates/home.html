@@ -3,52 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartConsult Agent</title>
+    <title>ApexFlow Digital | AI Consultant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; height: 100vh; margin: 0; }
-        .chat-container { width: 400px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #007bff; color: white; padding: 15px; text-align: center; font-weight: bold; }
-        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { max-width: 80%; padding: 10px; border-radius: 10px; font-size: 14px; line-height: 1.4; }
-        .user { align-self: flex-end; background-color: #007bff; color: white; border-bottom-right-radius: 0; }
-        .bot { align-self: flex-start; background-color: #e9ecef; color: #333; border-bottom-left-radius: 0; }
-        .input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
-        button { margin-left: 10px; padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .loading { font-size: 12px; color: #888; text-align: center; margin-top: 5px; display: none; }
+        :root {
+            --primary-color: #0F172A;
+            --primary-gradient: linear-gradient(135deg, #0F172A, #334155);
+            --accent-color: #3B82F6;
+            --bg-color: #F8FAFC;
+            --chat-bg: #FFFFFF;
+            --user-msg-bg: #0F172A;
+            --bot-msg-bg: #F1F5F9;
+            --text-main: #1E293B;
+            --text-light: #64748B;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 85vh;
+            background: var(--chat-bg);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+        }
+
+        .header {
+            background: var(--primary-gradient);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .agent-info h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .agent-info span {
+            font-size: 13px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #22C55E;
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #FFFFFF;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.6;
+            position: relative;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+
+        .user {
+            align-self: flex-end;
+            background-color: var(--user-msg-bg);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-content { white-space: pre-wrap; }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            padding: 12px 18px;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            margin-bottom: 10px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: #94A3B8;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .input-area {
+            padding: 16px 24px;
+            background: white;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 20; /* Ensure it stays on top */
+        }
+
+        input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            outline: none;
+            font-size: 15px;
+            transition: all 0.2s;
+            background-color: #F8FAFC;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        #send-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            /* Ensure the button is the target */
+            position: relative; 
+            z-index: 21; 
+        }
+
+        #send-btn:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        #send-btn:active {
+            transform: translateY(0);
+        }
+
+        #send-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none; /* Icon allows click to pass through to button */
+        }
+
+        /* Scrollbar */
+        .chat-box::-webkit-scrollbar { width: 6px; }
+        .chat-box::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
-    <div class="header">Sales Agent</div>
-    <div class="chat-box" id="chat-box">
-        <div class="message bot">Hello! I'm your Web Strategy Consultant. How can I help you today?</div>
+    <div class="header">
+        <div class="avatar">⚡</div>
+        <div class="agent-info">
+            <h3>ApexFlow Digital</h3>
+            <span><span class="status-dot"></span> Sales & Strategy AI</span>
+        </div>
     </div>
-    <div class="loading" id="loading">Agent is typing...</div>
+
+    <div class="chat-box" id="chat-box">
+        <div class="message bot">
+            <div class="message-content">Hi there! 👋 I'm the Strategy Assistant for **ApexFlow Digital**.
+
+I can help you with:
+• Custom Web Development quotes
+• Enterprise AI integrations
+• Pricing & Timelines
+
+How can we help your business grow today?</div>
+        </div>
+    </div>
+
+    <div class="typing-indicator" id="typing-indicator">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleEnter(event)">
-        <button onclick="sendMessage()">Send</button>
+        <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+        <button id="send-btn" type="button">
+            <svg viewBox="0 0 24 24">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        </button>
     </div>
 </div>
 
-<script>
-    // Generate a random thread ID for this session
+<!-- <script>
+    // 1. Session Setup
     const threadId = "user_" + Math.random().toString(36).substr(2, 9);
+    const inputField = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const chatBox = document.getElementById("chat-box");
+    const typingIndicator = document.getElementById("typing-indicator");
 
+    // 2. Event Listeners
+    // FIX: Wrapped in explicit function to ensure safe execution
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevents any weird default browser behavior
+        sendMessage();
+        console.log("button clicked");
+    });
+    
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // 3. Main Logic
     async function sendMessage() {
-        const inputField = document.getElementById("user-input");
-        const chatBox = document.getElementById("chat-box");
-        const loading = document.getElementById("loading");
         const message = inputField.value.trim();
-
         if (!message) return;
-
-        // Add User Message
+        console.log(message);
+        // UI Updates
         appendMessage(message, "user");
         inputField.value = "";
-        loading.style.display = "block";
+        
+        // Show Typing
+        chatBox.appendChild(typingIndicator);
+        typingIndicator.style.display = "flex";
+        scrollToBottom();
+
+        try {
+            console.log("Sending message to agent:", message); // Debug log
+            const response = await fetch('/agent/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: message,
+                    thread_id: threadId 
+                })
+            });
+
+            const data = await response.json();
+            
+            // Hide Typing
+            typingIndicator.style.display = "none";
+
+            if (data.response) {
+                appendMessage(data.response, "bot");
+            } else {
+                appendMessage("I'm having trouble connecting to the server. Please check your Django console.", "bot");
+            }
+        } catch (error) {
+            typingIndicator.style.display = "none";
+            console.error("Error:", error);
+            appendMessage("Error: Could not reach the Agent API.", "bot");
+        }
+    }
+
+    function appendMessage(text, sender) {
+        const div = document.createElement("div");
+        div.classList.add("message", sender);
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.classList.add("message-content");
+        contentDiv.innerText = text;
+        
+        div.appendChild(contentDiv);
+        
+        // Insert before typing indicator
+        chatBox.insertBefore(div, typingIndicator);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script> -->
+
+<script>
+    // 1. Session Setup
+    const threadId = "user_" + Math.random().toString(36).substr(2, 9);
+    const inputField = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const chatBox = document.getElementById("chat-box");
+    const typingIndicator = document.getElementById("typing-indicator");
+
+    // 2. Event Listeners
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault(); 
+        sendMessage();
+    });
+    
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // 3. Main Logic
+    async function sendMessage() {
+        const message = inputField.value.trim();
+        if (!message) return;
+
+        // UI Updates
+        // 1. Add User Message
+        appendMessage(message, "user");
+        inputField.value = "";
+        
+        // 2. Show Typing Indicator (Move it inside chatBox now)
+        chatBox.appendChild(typingIndicator);
+        typingIndicator.style.display = "flex";
+        scrollToBottom();
 
         try {
             const response = await fetch('/agent/', {
@@ -61,33 +402,48 @@
             });
 
             const data = await response.json();
-            loading.style.display = "none";
             
+            // 3. Hide Typing Indicator
+            typingIndicator.style.display = "none";
+
             if (data.response) {
                 appendMessage(data.response, "bot");
             } else {
-                appendMessage("Error: Could not reach agent.", "bot");
+                appendMessage("I'm having trouble connecting to the server.", "bot");
             }
         } catch (error) {
-            loading.style.display = "none";
+            typingIndicator.style.display = "none";
             console.error("Error:", error);
-            appendMessage("Error: Network issue.", "bot");
+            appendMessage("Error: Could not reach the Agent API.", "bot");
         }
     }
 
     function appendMessage(text, sender) {
-        const chatBox = document.getElementById("chat-box");
         const div = document.createElement("div");
         div.classList.add("message", sender);
-        div.innerText = text;
-        chatBox.appendChild(div);
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.classList.add("message-content");
+        contentDiv.innerText = text;
+        
+        div.appendChild(contentDiv);
+        
+        // --- FIX STARTS HERE ---
+        // Check if typingIndicator is actually inside chatBox before inserting before it
+        if (typingIndicator.parentNode === chatBox && typingIndicator.style.display !== 'none') {
+            chatBox.insertBefore(div, typingIndicator);
+        } else {
+            // If indicator isn't there or hidden, just add message to the bottom
+            chatBox.appendChild(div);
+        }
+        // --- FIX ENDS HERE ---
+        
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    function handleEnter(event) {
-        if (event.key === "Enter") sendMessage();
-    }
 </script>
-
 </body>
 </html>
